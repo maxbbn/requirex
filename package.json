@@ -1,0 +1,23 @@
+{
+  "name": "requirex",
+  "version": "1.0.0",
+  "description": "require module of any version",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:maxbbn/requirex.git"
+  },
+  "keywords": [
+    "npm",
+    "require"
+  ],
+  "author": "maxbbn",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/maxbbn/requirex/issues"
+  },
+  "homepage": "https://github.com/maxbbn/requirex"
+}
