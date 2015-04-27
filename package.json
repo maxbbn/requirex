@@ -2,7 +2,7 @@
   "name": "requirex",
   "version": "1.0.0",
   "description": "require module of any version",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "test": "mocha"
   },
@@ -19,5 +19,20 @@
   "bugs": {
     "url": "https://github.com/maxbbn/requirex/issues"
   },
-  "homepage": "https://github.com/maxbbn/requirex"
+  "homepage": "https://github.com/maxbbn/requirex",
+  "devDependencies": {
+    "expect.js": "~0.3.1",
+    "mocha": "~2.0.1",
+    "nock": "^1.7.0"
+  },
+  "dependencies": {
+    "async": "^0.9.0",
+    "bluebird": "^2.9.24",
+    "debug": "~2.1.0",
+    "lodash": "~2.4.1",
+    "mkdirp": "~0.5.0",
+    "request": "~2.48.0",
+    "semver": "^4.3.3",
+    "tar": "^2.1.0"
+  }
 }
