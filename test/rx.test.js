@@ -1,102 +1,164 @@
 var expect = require('expect.js');
 var nock = require('nock');
 var path = require('path');
+var fs = require('../lib/fs');
 
-describe.only('RX', function () {
+describe('RX', function () {
+  var registry = 'https://r.cnpmjs.org';
   var RX = require('../lib/index');
-  var rx = new RX({
-    root: 'ROOT',
-    infoTimeout: 200000,
-    cli: 'cnpm',
-    registry: 'https://r.cnpmjs.org'
-  });
-
   describe('#info', function () {
 
     before(function () {
-      nock(rx.registry)
-        .get('/lodash/latest')
-        .replyWithFile(200, path.join(__dirname, './fixtures/lodash/latest.json'))
+      this.rx = new RX({
+        root: 'ROOT',
+        infoCacheTime: 1000,
+        cli: 'cnpm',
+        registry: registry
+      });
     });
 
-    after(function () {
+    afterEach(function () {
       nock.cleanAll();
     });
 
     it('should read info', function () {
-      return rx.info('lodash')
+      var scope = nock(registry)
+        .get('/lodash')
+        .replyWithFile(200, path.join(__dirname, './fixtures/lodash/info.json'));
+
+      return this.rx.info('lodash')
         .then(function(info){
           expect(info.name).to.be('lodash');
-        })
+          expect(scope.isDone()).to.be(true);
+        });
+    });
+
+    it('should read from cache', function () {
+      return this.rx.info('lodash')
+        .then(function(info){
+          expect(info.name).to.be('lodash');
+        });
+    });
+
+    it('timeout 1000', function (done) {
+      setTimeout(done, 1000);
+    });
+
+    it('should update again', function () {
+      var scope = nock(registry)
+        .get('/lodash')
+        .replyWithFile(200, path.join(__dirname, './fixtures/lodash/info.json'));
+
+      return this.rx.info('lodash')
+        .then(function(info){
+          expect(info.name).to.be('lodash');
+          expect(scope.isDone(), 'isDone').to.be(true);
+        });
     });
   });
 
 
   describe('#resolve', function () {
-    this.timeout(8000);
 
-    before(function () {
-
-      nock('https://r.cnpmjs.org')
-        .get('/lodash/latest').times(2)
-        .replyWithFile(200, path.join(__dirname, 'fixtures/lodash/latest.json'))
-        .get('/lodash/0.3.2')
-        .replyWithFile(200, path.join(__dirname, 'fixtures/lodash/0.3.2.json'))
+    before(function(){
+      this.rx = new RX({
+        root: 'ROOT'
+      });
     });
 
-    after(function () {
-      nock.cleanAll();
+
+    it('should resolve with version', function () {
+      var m = this.rx.resolve('lodash@0.3.2');
+      expect(m.name).to.be('lodash');
+      expect(m.version).to.be('0.3.2');
+      expect(m.tag).to.not.be.ok();
     });
 
-      it('should resolve with version', function () {
-      return rx.resolve('lodash@0.3.2')
-        .then(function(module){
-          expect(module).to.be.an('object');
-          expect(module.name).to.be('lodash');
-          expect(module.version).to.be('0.3.2');
-          expect(module.tag).to.be.an('undefined');
-        })
+    it('should resolve moduleName', function () {
+      var m = this.rx.resolve('lodash');
+      expect(m.name).to.be('lodash');
+      expect(m.version).to.not.be.ok();
+      expect(m.tag).to.be('latest');
     });
 
-    it('should read info', function () {
-      return rx.resolve('lodash')
-        .then(function(module){
-          expect(module).to.be.an('object');
-          expect(module.name).to.be('lodash');
-          expect(module.version).to.match(/^\d+\.\d+\.\d+$/);
-          expect(module.tag).to.be('latest');
-        })
-    });
+
 
     it('should read info with tag', function () {
-      return rx.resolve('lodash@latest')
-        .then(function(module){
-          expect(module).to.be.an('object');
-          expect(module.name).to.be('lodash');
-          expect(module.version).to.match(/^\d+\.\d+\.\d+$/);
-          expect(module.tag).to.be('latest');
-        })
+      var m = this.rx.resolve('lodash@beta');
+      expect(m.name).to.be('lodash');
+      expect(m.version).to.not.be.ok();
+      expect(m.tag).to.be('beta');
     });
   });
 
   describe('#install', function () {
-    this.timeout(20000);
     before(function () {
-      nock(rx.registry)
-        .get('/mkdirp/latest')
-        .replyWithFile(200, path.join(__dirname, 'fixtures/mkdirp/latest.json'));
-
-      nock('https://r.cnpmjs.org')
-        .get('/mkdirp/download/mkdirp-0.5.0.tgz')
-        .replyWithFile(200, path.join(__dirname, 'fixtures/mkdirp/mkdirp-0.5.0.tgz'))
+      this.rx = new RX({
+        root: 'ROOT',
+        cli: 'cnpm',
+        registry: registry
+      });
     });
 
-    after(function () {
+    this.timeout(20000);
+
+    afterEach(function () {
       nock.cleanAll();
     });
 
     it('should install', function () {
-      return rx.install('mkdirp');
+      nock(registry)
+        .get('/mkdirp')
+        .replyWithFile(200, path.join(__dirname, 'fixtures/mkdirp/info.json'));
+      nock(registry)
+        .get('/mkdirp/download/mkdirp-0.5.0.tgz')
+        .replyWithFile(200, path.join(__dirname, 'fixtures/mkdirp/mkdirp-0.5.0.tgz'));
+
+      return this.rx.install('mkdirp');
     });
+  });
+
+
+  describe('lock', function () {
+    before(function () {
+      this.rx = new RX({
+        root: 'ROOT'
+      });
+    });
+
+    it('should read lock', function () {
+      return this.rx.isLock({name: 'nameIsNotImportant'}).then(function(lock){
+        expect(lock).to.be(false);
+      });
+    });
+
+    it('should lock', function () {
+      return this.rx.lock({
+          name: 'nameIsNotImportant'
+        })
+        .then(function(){
+          return this.rx.isLock({
+            name: 'nameIsNotImportant'
+          })
+        }.bind(this))
+        .then(function(lock){
+          expect(lock).to.be(true);
+        });
+    });
+
+    it('should unlock', function () {
+      return this.rx.unlock({
+          name: 'nameIsNotImportant'
+        })
+        .then(function(){
+          return this.rx.isLock({
+            name: 'nameIsNotImportant'
+          })
+        }.bind(this))
+        .then(function(lock){
+          expect(lock).to.be(false);
+        });
+    });
+
   });
 });

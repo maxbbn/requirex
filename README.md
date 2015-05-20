@@ -3,9 +3,11 @@ R
 
 require module with any version
 
-- auto install and require package like foo@1.2.2
-- auto resolve and update by npm tag, eg foo@latest
-
+- install npm module by version or tag
+- required installed module
+- keep modules up to date
+- list install module and version
+- module can access when when is updating
 
 Install
 -------
