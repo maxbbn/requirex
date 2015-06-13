@@ -110,6 +110,7 @@ describe('RX', function () {
       nock(registry)
         .get('/mkdirp')
         .replyWithFile(200, path.join(__dirname, 'fixtures/mkdirp/info.json'));
+
       nock(registry)
         .get('/mkdirp/download/mkdirp-0.5.0.tgz')
         .replyWithFile(200, path.join(__dirname, 'fixtures/mkdirp/mkdirp-0.5.0.tgz'));
@@ -118,6 +119,22 @@ describe('RX', function () {
     });
   });
 
+  //describe('#require', function () {
+  //  before(function () {
+  //    this.rx = new RX({
+  //      root: 'ROOT',
+  //      cli: 'cnpm',
+  //      registry: registry
+  //    });
+  //  });
+  //
+  //  it('should require installed module', function () {
+  //    return this.rx.require('mkdirp')
+  //      .then(function(module){
+  //        expect(module).to.be.ok();
+  //      });
+  //  });
+  //});
 
   describe('lock', function () {
     before(function () {
