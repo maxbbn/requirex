@@ -34,5 +34,8 @@
     "request": "~2.48.0",
     "semver": "^4.3.3",
     "tar": "^2.1.0"
+  },
+  "publishConfig": {
+    "registry": "http://registry.npm.alibaba-inc.com"
   }
 }
