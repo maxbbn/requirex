@@ -1,5 +1,5 @@
 {
-  "name": "rx",
+  "name": "@ali/rx",
   "version": "0.0.1",
   "description": "require module of any version",
   "main": "lib/index.js",
